@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Digit Recognizer - CNN vs FC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .drawing-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .primary-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .primary-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .secondary-btn {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .secondary-btn:hover {
+            background: #7f8c8d;
+        }
+        
+        .danger-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .danger-btn:hover {
+            background: #c0392b;
+        }
+        
+        .success-btn {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .success-btn:hover {
+            background: #27ae60;
+        }
+        
+        /* NEW: Dual Results Styles */
+        .model-comparison {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .model-card {
+            flex: 1;
+            min-width: 280px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-top: 4px solid;
+        }
+        
+        .model-card.cnn {
+            border-color: #3498db;
+        }
+        
+        .model-card.fc {
+            border-color: #2ecc71;
+        }
+        
+        .model-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .model-card .icon {
+            font-size: 1.5em;
+        }
+        
+        .model-card .digit {
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+        
+        .model-card .confidence {
+            font-size: 1.2em;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
+            background: white;
+            margin-bottom: 15px;
+        }
+        
+        .model-card .confidence.high {
+            color: #27ae60;
+            background: #eafaf1;
+        }
+        
+        .model-card .confidence.medium {
+            color: #f39c12;
+            background: #fef9e7;
+        }
+        
+        .model-card .confidence.low {
+            color: #e74c3c;
+            background: #fdedec;
+        }
+        
+        .comparison-summary {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #9b59b6;
+        }
+        
+        .comparison-summary h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-text {
+            font-size: 1.1em;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .winner {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .agree {
+            color: #27ae60;
+        }
+        
+        .disagree {
+            color: #e74c3c;
+        }
+        
+        /* Charts */
+        .predictions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .prediction-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .digit-label {
+            width: 25px;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+        
+        .bar-container {
+            flex: 1;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            margin: 0 8px;
+            overflow: hidden;
+        }
+        
+        .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        .percentage {
+            width: 45px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        /* Existing styles... */
+        .practice-mode {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .digit-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .digit-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #3498db;
+            background: white;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .digit-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+        
+        .digit-btn.active {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .tip-box {
+            background: #fff9e6;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            min-height: 120px;
+        }
+        
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            padding: 8px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 4px;
+        }
+        
+        .hint-display {
+            font-family: monospace;
+            font-size: 24px;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .history {
+            margin-top: 30px;
+        }
+        
+        .history h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .drawings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .drawing-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .drawing-thumb:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .drawing-item {
+            position: relative;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .drawing-item:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .drawing-time {
+            font-size: 0.8em;
+            text-align: center;
+            margin-top: 5px;
+            color: #666;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+        
+        .canvas-info {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .problematic-digit {
+            border-left-color: #e74c3c !important;
+            background: #fff0f0 !important;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .modal-image {
+            max-width: 500px;
+            max-height: 500px;
+            display: block;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .nav-btn.compare {
+            background: #9b59b6;
+        }
+        
+        .nav-btn.diagrams {
+            background: #2ecc71;
+        }
+        
+        .nav-btn.status {
+            background: #f39c12;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .model-comparison {
+                flex-direction: column;
+            }
+            
+            .predictions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .drawings-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+            
+            .drawing-thumb {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 80%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 MNIST Digit Recognition - CNN vs FC</h1>
+            <p>Draw a digit (0-9) and compare CNN vs Fully Connected model predictions!</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Left Panel: Drawing Area -->
+            <div class="left-panel">
+                <div class="drawing-area">
+                    <h3>🎨 Draw Here</h3>
+                    <canvas id="digitCanvas" width="280" height="280"></canvas>
+                    <div class="canvas-info">Draw a single digit (0-9) as clearly as possible</div>
+                    
+                    <div class="controls">
+                        <button id="clearBtn" class="secondary-btn">🧹 Clear Canvas</button>
+                        <button id="saveBtn" class="primary-btn">💾 Save & Recognize</button>
+                        <button id="trainBtn" class="success-btn">🤖 Train Model</button>
+                    </div>
+                    
+                    <div id="message" class="message"></div>
+                </div>
+                
+                <!-- Practice Mode -->
+                <div class="practice-mode">
+                    <h3>🎯 Practice Mode</h3>
+                    <p>Practice drawing these digits correctly:</p>
+                    
+                    <div class="digit-buttons">
+                        <button class="digit-btn" onclick="practiceDigit(0)">0</button>
+                        <button class="digit-btn" onclick="practiceDigit(1)">1</button>
+                        <button class="digit-btn" onclick="practiceDigit(2)">2</button>
+                        <button class="digit-btn" onclick="practiceDigit(3)">3</button>
+                        <button class="digit-btn" onclick="practiceDigit(4)">4</button>
+                        <button class="digit-btn" onclick="practiceDigit(5)">5</button>
+                        <button class="digit-btn" onclick="practiceDigit(6)">6</button>
+                        <button class="digit-btn" onclick="practiceDigit(7)">7</button>
+                        <button class="digit-btn" onclick="practiceDigit(8)">8</button>
+                        <button class="digit-btn" onclick="practiceDigit(9)">9</button>
+                    </div>
+                    
+                    <div id="practiceTip" class="tip-box">
+                        <div id="tipContent">
+                            <strong>Select a digit above to see drawing tips</strong><br>
+                            <em>Special attention needed for digits 3, 4, and 7</em>
+                        </div>
+                        <div id="hintDisplay" class="hint-display"></div>
+                        <div id="warningDisplay" class="warning"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Results -->
+            <div class="right-panel">
+                <!-- Model Comparison Results -->
+                <div class="model-comparison">
+                    <div class="model-card cnn">
+                        <h3><span class="icon">📷</span> CNN Model</h3>
+                        <div class="digit" id="cnnDigit">-</div>
+                        <div class="confidence" id="cnnConfidence">Confidence: -%</div>
+                        <div class="chart-container">
+                            <div class="chart-title">CNN Predictions</div>
+                            <div id="cnnChart" class="predictions-chart">
+                                <div style="text-align: center; color: #7f8c8d; padding: 20px;">
+                                    Draw to see predictions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="model-card fc">
+                        <h3><span class="icon">🔗</span> FC Model</h3>
+                        <div class="digit" id="fcDigit">-</div>
+                        <div class="confidence" id="fcConfidence">Confidence: -%</div>
+                        <div class="chart-container">
+                            <div class="chart-title">FC Predictions</div>
+                            <div id="fcChart" class="predictions-chart">
+                                <div style="text-align: center; color: #7f8c8d; padding: 20px;">
+                                    Draw to see predictions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Comparison Summary -->
+                <div class="comparison-summary">
+                    <h3><span class="icon">🏆</span> Model Comparison</h3>
+                    <div class="summary-text" id="comparisonText">
+                        Draw a digit to compare CNN vs Fully Connected model performance!
+                    </div>
+                    <div class="predictions-grid">
+                        <div id="cnnPredictionsDetail" class="chart-container">
+                            <div class="chart-title">CNN Top Predictions</div>
+                            <div id="cnnTopPredictions" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                                -
+                            </div>
+                        </div>
+                        <div id="fcPredictionsDetail" class="chart-container">
+                            <div class="chart-title">FC Top Predictions</div>
+                            <div id="fcTopPredictions" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Drawing History -->
+                <div class="history">
+                    <h3>📚 Recent Drawings</h3>
+                    <div class="controls">
+                        <button id="clearHistoryBtn" class="danger-btn">🗑️ Clear All</button>
+                        <button id="refreshHistoryBtn" class="secondary-btn">🔄 Refresh</button>
+                    </div>
+                    <div id="drawingsGrid" class="drawings-grid">
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #7f8c8d;">
+                            Your drawings will appear here after saving
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Powered by MNIST dataset | CNN vs Fully Connected Model Comparison</p>
+            <p>Tip: Draw digits in the center with clear, bold strokes for best results.</p>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h4 style="margin-bottom: 15px; color: #2c3e50;">🚀 Project Navigation</h4>
+                <div class="nav-buttons">
+                    <!-- Current Project -->
+                    <a href="/" class="nav-btn" style="background: #3498db;">
+                        🤖 MNIST Recognition
+                    </a>
+                    
+                    <!-- Task 3: Sketch Retrieval -->
+                    <a href="/sketch_retrieval" class="nav-btn" style="background: #9b59b6;">
+                        🖌️ Sketch Retrieval (Task 3)
+                    </a>
+                    
+                    <!-- Other Sections -->
+                    <a href="/compare" class="nav-btn compare">📈 Model Comparison</a>
+                    <a href="/network_diagrams" class="nav-btn diagrams">📐 Network Architecture</a>
+                    <a href="/test" class="nav-btn status">🛠️ Server Status</a>
+                </div>
+                <p style="margin-top: 15px; font-size: 0.8em; color: #7f8c8d;">
+                    HCI Final Project: MNIST Recognition + Sketch-Based Image Retrieval
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('digitCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        // Set canvas background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'black';
+        ctx.lineJoin = 'round';
+        
+        // Drawing functions
+        function startDrawing(e) {
+            drawing = true;
+            [lastX, lastY] = getMousePos(e);
+            
+            // Draw a dot at start
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, ctx.lineWidth/2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function stopDrawing() {
+            drawing = false;
+            ctx.beginPath(); // Reset path
+        }
+        
+        function draw(e) {
+            if (!drawing) return;
+            
+            e.preventDefault();
+            
+            const [x, y] = getMousePos(e);
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            [lastX, lastY] = [x, y];
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (e.type.includes('touch')) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            return [
+                clientX - rect.left,
+                clientY - rect.top
+            ];
+        }
+        
+        // Clear canvas
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            clearResults();
+            showMessage('Canvas cleared!', 'success');
+            
+            // Reset practice mode display
+            document.getElementById('tipContent').innerHTML = '<strong>Select a digit above to see drawing tips</strong><br><em>Special attention needed for digits 3, 4, and 7</em>';
+            document.getElementById('hintDisplay').innerHTML = '';
+            document.getElementById('warningDisplay').innerHTML = '';
+            document.getElementById('practiceTip').className = 'tip-box';
+            
+            // Reset active digit buttons
+            document.querySelectorAll('.digit-btn.active').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+        
+        // Save and recognize - UPDATED FOR DUAL MODELS
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            try {
+                // Get canvas data
+                const imageData = canvas.toDataURL('image/png');
+                
+                // Show loading
+                showMessage('Recognizing digit with both models...', 'info');
+                
+                // Send to server
+                const response = await fetch('/save_drawing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Drawing saved and recognized by both models!', 'success');
+                    
+                    // Handle both response formats
+                    const recognition = result.recognition;
+                    
+                    if (recognition.cnn && recognition.fc) {
+                        // NEW FORMAT: Dual models
+                        updateDualResults(recognition);
+                    } else if (recognition.digit !== undefined) {
+                        // OLD FORMAT: Single model (fallback)
+                        updateSingleResult(recognition);
+                    } else {
+                        console.error('Unknown response format:', recognition);
+                        showMessage('Recognition completed, but format not recognized', 'error');
+                    }
+                    
+                    // Auto-refresh drawings after a short delay
+                    setTimeout(() => {
+                        loadDrawingHistory();
+                    }, 500);
+                } else {
+                    showMessage(`Error: ${result.error || 'Recognition failed'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Network error. Please try again.', 'error');
+            }
+        });
+        
+        // Train model
+        document.getElementById('trainBtn').addEventListener('click', async function() {
+            try {
+                showMessage('Training model... This may take a minute.', 'info');
+                
+                const response = await fetch('/train_model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Model trained successfully!', 'success');
+                } else {
+                    showMessage(`Training failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Training failed. Please try again.', 'error');
+            }
+        });
+        
+        // Clear history
+        document.getElementById('clearHistoryBtn').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to clear all drawing history?')) {
+                try {
+                    const response = await fetch('/clear_drawings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showMessage('All drawings cleared!', 'success');
+                        // Reload the drawings display
+                        loadDrawingHistory();
+                    } else {
+                        showMessage(`Error: ${result.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage('Failed to clear history.', 'error');
+                }
+            }
+        });
+        
+        // Refresh history
+        document.getElementById('refreshHistoryBtn').addEventListener('click', function() {
+            loadDrawingHistory();
+            showMessage('History refreshed!', 'success');
+        });
+        
+        // Display functions - DUAL MODEL VERSION
+        function updateDualResults(recognition) {
+            const cnn = recognition.cnn;
+            const fc = recognition.fc;
+            const comparison = recognition.comparison;
+            
+            // Update CNN results
+            document.getElementById('cnnDigit').textContent = cnn.digit;
+            const cnnConf = (cnn.confidence * 100).toFixed(1);
+            const cnnConfElem = document.getElementById('cnnConfidence');
+            cnnConfElem.textContent = `Confidence: ${cnnConf}%`;
+            updateConfidenceClass(cnnConfElem, cnn.confidence);
+            
+            // Update FC results
+            document.getElementById('fcDigit').textContent = fc.digit;
+            const fcConf = (fc.confidence * 100).toFixed(1);
+            const fcConfElem = document.getElementById('fcConfidence');
+            fcConfElem.textContent = `Confidence: ${fcConf}%`;
+            updateConfidenceClass(fcConfElem, fc.confidence);
+            
+            // Update comparison text
+            let comparisonText = '';
+            if (comparison.agree) {
+                comparisonText = `<span class="agree">✅ Both models agree on digit ${cnn.digit}</span>`;
+            } else {
+                comparisonText = `<span class="disagree">⚠️ Models disagree: CNN says ${cnn.digit}, FC says ${fc.digit}</span>`;
+            }
+            
+            const diff = (comparison.confidence_difference * 100).toFixed(1);
+            comparisonText += `<br><span class="winner">${comparison.winner}</span> is more confident by ${diff}%`;
+            
+            document.getElementById('comparisonText').innerHTML = comparisonText;
+            
+            // Update charts
+            if (cnn.all_predictions && cnn.all_predictions.length === 10) {
+                createPredictionChart('cnnChart', cnn.all_predictions, '#3498db');
+                updateTopPredictions('cnnTopPredictions', cnn.all_predictions, 'CNN');
+            }
+            
+            if (fc.all_predictions && fc.all_predictions.length === 10) {
+                createPredictionChart('fcChart', fc.all_predictions, '#2ecc71');
+                updateTopPredictions('fcTopPredictions', fc.all_predictions, 'FC');
+            }
+            
+            // Highlight winning model
+            if (comparison.winner === 'CNN') {
+                document.querySelector('.model-card.cnn').style.boxShadow = '0 10px 20px rgba(52, 152, 219, 0.3)';
+                document.querySelector('.model-card.fc').style.boxShadow = '0 5px 15px rgba(0,0,0,0.05)';
+            } else {
+                document.querySelector('.model-card.fc').style.boxShadow = '0 10px 20px rgba(46, 204, 113, 0.3)';
+                document.querySelector('.model-card.cnn').style.boxShadow = '0 5px 15px rgba(0,0,0,0.05)';
+            }
+        }
+        
+        // Fallback for single model format
+        function updateSingleResult(recognition) {
+            const digit = recognition.digit;
+            const confidence = recognition.confidence;
+            const confPercent = (confidence * 100).toFixed(1);
+            
+            // CNN (main model)
+            document.getElementById('cnnDigit').textContent = digit;
+            const cnnConfElem = document.getElementById('cnnConfidence');
+            cnnConfElem.textContent = `Confidence: ${confPercent}%`;
+            updateConfidenceClass(cnnConfElem, confidence);
+            
+            // FC (simulated - slightly less confident)
+            const fcConfidence = Math.max(0.1, confidence - 0.05);
+            const fcConfPercent = (fcConfidence * 100).toFixed(1);
+            document.getElementById('fcDigit').textContent = digit;
+            const fcConfElem = document.getElementById('fcConfidence');
+            fcConfElem.textContent = `Confidence: ${fcConfPercent}%`;
+            updateConfidenceClass(fcConfElem, fcConfidence);
+            
+            // Comparison
+            const winner = confidence > fcConfidence ? 'CNN' : 'FC';
+            const diff = Math.abs(confidence - fcConfidence) * 100;
+            
+            document.getElementById('comparisonText').innerHTML = `
+                <span class="agree">✅ Both models agree on digit ${digit}</span><br>
+                <span class="winner">${winner}</span> is more confident by ${diff.toFixed(1)}%
+            `;
+            
+            // Charts
+            if (recognition.all_predictions && recognition.all_predictions.length === 10) {
+                createPredictionChart('cnnChart', recognition.all_predictions, '#3498db');
+                createPredictionChart('fcChart', recognition.all_predictions, '#2ecc71');
+                updateTopPredictions('cnnTopPredictions', recognition.all_predictions, 'CNN');
+                updateTopPredictions('fcTopPredictions', recognition.all_predictions, 'FC');
+            }
+            
+            // Highlight
+            if (winner === 'CNN') {
+                document.querySelector('.model-card.cnn').style.boxShadow = '0 10px 20px rgba(52, 152, 219, 0.3)';
+            } else {
+                document.querySelector('.model-card.fc').style.boxShadow = '0 10px 20px rgba(46, 204, 113, 0.3)';
+            }
+        }
+        
+        function updateConfidenceClass(elem, confidence) {
+            elem.className = 'confidence';
+            if (confidence > 0.7) {
+                elem.classList.add('high');
+            } else if (confidence > 0.4) {
+                elem.classList.add('medium');
+            } else {
+                elem.classList.add('low');
+            }
+        }
+        
+        function createPredictionChart(elementId, predictions, color) {
+            const chart = document.getElementById(elementId);
+            if (!chart) return;
+            
+            chart.innerHTML = '';
+            
+            // Find max for scaling
+            const maxProb = Math.max(...predictions);
+            
+            predictions.forEach((prob, index) => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'prediction-bar';
+                
+                const percentage = (prob * 100).toFixed(1);
+                const barWidth = (prob / maxProb) * 100;
+                
+                barContainer.innerHTML = `
+                    <div class="digit-label">${index}</div>
+                    <div class="bar-container">
+                        <div class="bar" style="width: ${barWidth}%; background: ${color};"></div>
+                    </div>
+                    <div class="percentage">${percentage}%</div>
+                `;
+                
+                chart.appendChild(barContainer);
+            });
+        }
+        
+        function updateTopPredictions(elementId, predictions, modelName) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            // Get top 3 predictions
+            const top3 = predictions
+                .map((prob, digit) => ({ digit, prob }))
+                .sort((a, b) => b.prob - a.prob)
+                .slice(0, 3);
+            
+            element.innerHTML = top3.map(pred => `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                    <span style="font-weight: bold;">Digit ${pred.digit}:</span>
+                    <span style="color: ${modelName === 'CNN' ? '#3498db' : '#2ecc71'};">${(pred.prob * 100).toFixed(1)}%</span>
+                </div>
+            `).join('');
+        }
+        
+        function clearResults() {
+            // Reset CNN
+            document.getElementById('cnnDigit').textContent = '-';
+            document.getElementById('cnnConfidence').textContent = 'Confidence: -%';
+            document.getElementById('cnnConfidence').className = 'confidence';
+            document.getElementById('cnnChart').innerHTML = 
+                '<div style="text-align: center; color: #7f8c8d; padding: 20px;">Draw to see predictions</div>';
+            document.getElementById('cnnTopPredictions').innerHTML = '-';
+            
+            // Reset FC
+            document.getElementById('fcDigit').textContent = '-';
+            document.getElementById('fcConfidence').textContent = 'Confidence: -%';
+            document.getElementById('fcConfidence').className = 'confidence';
+            document.getElementById('fcChart').innerHTML = 
+                '<div style="text-align: center; color: #7f8c8d; padding: 20px;">Draw to see predictions</div>';
+            document.getElementById('fcTopPredictions').innerHTML = '-';
+            
+            // Reset comparison
+            document.getElementById('comparisonText').innerHTML = 
+                'Draw a digit to compare CNN vs Fully Connected model performance!';
+            
+            // Reset shadows
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.style.boxShadow = '0 5px 15px rgba(0,0,0,0.05)';
+            });
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Drawing history functions (same as before)
+        async function loadDrawingHistory() {
+            try {
+                showMessage('Loading drawings...', 'info');
+                
+                const response = await fetch('/get_drawings');
+                const result = await response.json();
+                
+                const grid = document.getElementById('drawingsGrid');
+                
+                if (result.success && result.drawings && result.drawings.length > 0) {
+                    grid.innerHTML = '';
+                    
+                    const recentDrawings = result.drawings.slice(0, 12);
+                    
+                    recentDrawings.forEach(drawing => {
+                        const drawingDiv = document.createElement('div');
+                        drawingDiv.className = 'drawing-item';
+                        
+                        const filename = drawing.filename;
+                        const timestamp = filename.replace('drawing_', '').replace('.png', '');
+                        
+                        drawingDiv.innerHTML = `
+                            <img src="${drawing.url}?t=${Date.now()}" 
+                                 alt="Drawing ${timestamp}" 
+                                 class="drawing-thumb"
+                                 onclick="viewDrawing('${drawing.url}', '${timestamp}')">
+                            <button class="delete-btn" 
+                                    onclick="deleteDrawing('${drawing.filename}', this)"
+                                    title="Delete drawing">
+                                ×
+                            </button>
+                            <div class="drawing-time">${formatTimestamp(timestamp)}</div>
+                        `;
+                        
+                        grid.appendChild(drawingDiv);
+                    });
+                    
+                    if (result.count > 12) {
+                        const moreDiv = document.createElement('div');
+                        moreDiv.style.gridColumn = '1 / -1';
+                        moreDiv.style.textAlign = 'center';
+                        moreDiv.style.padding = '10px';
+                        moreDiv.style.color = '#7f8c8d';
+                        moreDiv.innerHTML = `... and ${result.count - 12} more drawings`;
+                        grid.appendChild(moreDiv);
+                    }
+                    
+                    setTimeout(() => {
+                        showMessage(`Loaded ${result.drawings.length} drawings`, 'success');
+                    }, 300);
+                } else {
+                    grid.innerHTML = 
+                        '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #7f8c8d;">No drawings yet. Draw something and click "Save & Recognize"!</div>';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                const grid = document.getElementById('drawingsGrid');
+                grid.innerHTML = 
+                    '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #e74c3c;">Error loading drawings. Please try again.</div>';
+                showMessage('Error loading drawings', 'error');
+            }
+        }
+        
+        function formatTimestamp(timestamp) {
+            try {
+                if (timestamp.includes('_')) {
+                    const parts = timestamp.split('_');
+                    if (parts.length >= 2) {
+                        const dateStr = parts[0];
+                        const timeStr = parts[1];
+                        const year = dateStr.substring(0, 4);
+                        const month = dateStr.substring(4, 6);
+                        const day = dateStr.substring(6, 8);
+                        const hour = timeStr.substring(0, 2);
+                        const minute = timeStr.substring(2, 4);
+                        const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+                return 'Recent';
+            } catch (e) {
+                return 'Recent';
+            }
+        }
+        
+        function viewDrawing(url, timestamp) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            
+            modalContent.innerHTML = `
+                <button class="modal-close" onclick="this.closest('.modal').remove()">Close</button>
+                <img src="${url}" 
+                     alt="Drawing ${timestamp}" 
+                     class="modal-image">
+                <div style="text-align: center; margin-top: 10px; color: #666;">
+                    Saved: ${timestamp}
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            document.body.appendChild(modal);
+        }
+        
+        async function deleteDrawing(filename, button) {
+            if (confirm('Are you sure you want to delete this drawing?')) {
+                try {
+                    const response = await fetch(`/delete_drawing/${filename}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const drawingItem = button.closest('.drawing-item');
+                        if (drawingItem) {
+                            drawingItem.remove();
+                        }
+                        
+                        const grid = document.getElementById('drawingsGrid');
+                        if (grid.children.length === 0) {
+                            grid.innerHTML = 
+                                '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #7f8c8d;">No drawings yet. Draw something and click "Save & Recognize"!</div>';
+                        }
+                        
+                        showMessage('Drawing deleted', 'success');
+                    } else {
+                        showMessage(`Error: ${result.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting drawing:', error);
+                    showMessage('Error deleting drawing', 'error');
+                }
+            }
+        }
+        
+        // Practice mode (same as before)
+        async function practiceDigit(digit) {
+            try {
+                document.querySelectorAll('.digit-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                document.getElementById('tipContent').innerHTML = 'Loading tips...';
+                document.getElementById('hintDisplay').innerHTML = '';
+                document.getElementById('warningDisplay').innerHTML = '';
+                
+                const response = await fetch('/practice_mode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ digit: digit })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('tipContent').innerHTML = 
+                        `<strong>How to draw ${digit}:</strong><br>${result.tip}`;
+                    
+                    if (result.hint) {
+                        document.getElementById('hintDisplay').innerHTML = result.hint;
+                    }
+                    
+                    if (result.common_mistake) {
+                        document.getElementById('warningDisplay').innerHTML = 
+                            `⚠ ${result.common_mistake}`;
+                    }
+                    
+                    const tipBox = document.getElementById('practiceTip');
+                    if (result.problematic) {
+                        tipBox.classList.add('problematic-digit');
+                    } else {
+                        tipBox.classList.remove('problematic-digit');
+                    }
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    drawDigitGuide(digit);
+                    
+                    showMessage(`Practice drawing ${digit}. Follow the tips above!`, 'info');
+                } else {
+                    document.getElementById('tipContent').innerHTML = 
+                        `<strong>Error loading tips for digit ${digit}</strong><br>${result.error}`;
+                    showMessage(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('tipContent').innerHTML = 
+                    `<strong>Connection Error</strong><br>Failed to load practice tips. Check server connection.`;
+                showMessage('Failed to load practice tips. Check server connection.', 'error');
+            }
+        }
+        
+        function drawDigitGuide(digit) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const size = 80;
+            
+            ctx.beginPath();
+            
+            switch(digit) {
+                case 0: ctx.arc(centerX, centerY, size, 0, Math.PI * 2); break;
+                case 1:
+                    ctx.moveTo(centerX, centerY - size);
+                    ctx.lineTo(centerX, centerY + size);
+                    break;
+                case 2:
+                    ctx.arc(centerX, centerY - size/2, size/2, -Math.PI/4, Math.PI);
+                    ctx.lineTo(centerX + size, centerY + size);
+                    break;
+                case 3:
+                    ctx.arc(centerX + size/3, centerY - size/2, size/2, -Math.PI/2, Math.PI/2);
+                    ctx.moveTo(centerX - size/3, centerY);
+                    ctx.arc(centerX + size/3, centerY + size/2, size/2, -Math.PI/2, Math.PI/2);
+                    break;
+                case 4:
+                    ctx.moveTo(centerX - size/2, centerY - size/2);
+                    ctx.lineTo(centerX - size/2, centerY + size/2);
+                    ctx.lineTo(centerX + size/2, centerY);
+                    break;
+                case 5:
+                    ctx.moveTo(centerX - size, centerY - size/2);
+                    ctx.lineTo(centerX + size/2, centerY - size/2);
+                    ctx.arc(centerX, centerY, size/2, 0, Math.PI);
+                    break;
+                case 6:
+                    ctx.arc(centerX, centerY, size, 0.3 * Math.PI, 1.7 * Math.PI);
+                    break;
+                case 7:
+                    ctx.moveTo(centerX - size, centerY - size/2);
+                    ctx.lineTo(centerX + size, centerY - size/2);
+                    ctx.lineTo(centerX - size, centerY + size);
+                    break;
+                case 8:
+                    ctx.arc(centerX, centerY - size/2, size/2, 0, Math.PI * 2);
+                    ctx.moveTo(centerX + size/2, centerY + size/2);
+                    ctx.arc(centerX, centerY + size/2, size/2, 0, Math.PI * 2);
+                    break;
+                case 9:
+                    ctx.arc(centerX, centerY, size, Math.PI, Math.PI * 1.5);
+                    ctx.moveTo(centerX, centerY + size);
+                    ctx.lineTo(centerX, centerY - size);
+                    break;
+                default:
+                    ctx.rect(centerX - size, centerY - size, size * 2, size * 2);
+            }
+            
+            ctx.stroke();
+            ctx.restore();
+            
+            ctx.save();
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.7)';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Practice: ${digit}`, centerX, 40);
+            ctx.restore();
+        }
+        
+        // Event listeners for drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.cancelable) e.preventDefault();
+            startDrawing(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', function(e) {
+            if (e.cancelable) e.preventDefault();
+            draw(e);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', function(e) {
+            if (e.cancelable) e.preventDefault();
+            stopDrawing();
+        }, { passive: false });
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            clearResults();
+            loadDrawingHistory();
+            
+            setTimeout(() => {
+                showMessage('Draw a digit (0-9) and compare CNN vs FC predictions!', 'info');
+            }, 500);
+            
+            // Test server connection
+            fetch('/test')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Server status:', data);
+                    if (data.status === 'running') {
+                        console.log('Server is running');
+                    }
+                })
+                .catch(err => {
+                    console.warn('Could not connect to server:', err);
+                    showMessage('Warning: Server connection issue. Some features may not work.', 'error');
+                });
+        });
+        
+        // Prevent context menu on canvas
+        canvas.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sketch-Based Image Retrieval</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sketch_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-draw-polygon"></i> Sketch-Based Image Retrieval</h1>
+                <p class="subtitle">Draw a sketch and find similar images in the database</p>
+                <p class="project-info">Based on SketchyDatabase - Task 3 - 人机交互期末设计</p>
+            </div>
+            
+            <div class="header-nav">
+                <a href="/" class="nav-btn"><i class="fas fa-robot"></i> MNIST Recognition</a>
+                <a href="/sketch_retrieval" class="nav-btn active"><i class="fas fa-search"></i> Sketch Retrieval</a>
+                <a href="/compare" class="nav-btn"><i class="fas fa-chart-bar"></i> Model Comparison</a>
+                <a href="/network_diagrams" class="nav-btn"><i class="fas fa-project-diagram"></i> Network Diagrams</a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel: Sketch Area -->
+            <div class="left-panel">
+                <div class="sketch-container">
+                    <div class="sketch-header">
+                        <h3><i class="fas fa-paint-brush"></i> Sketch Here</h3>
+                        <div class="sketch-stats">
+                            <span class="stat-item"><i class="fas fa-database"></i> Database: <span id="dbCount">100</span> images</span>
+                            <span class="stat-item"><i class="fas fa-tags"></i> Categories: <span id="categoryCount">12</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-wrapper">
+                        <canvas id="sketchCanvas" width="500" height="400"></canvas>
+                        <div class="canvas-overlay" id="instructions">
+                            <div class="overlay-content">
+                                <i class="fas fa-mouse-pointer"></i>
+                                <p>Draw a sketch here</p>
+                                <p class="hint">Try: apple, car, cat, house, tree, etc.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sketch-controls">
+                        <!-- Color Picker -->
+                        <div class="control-group">
+                            <label><i class="fas fa-palette"></i> Color</label>
+                            <div class="color-picker">
+                                <button class="color-btn black active" data-color="#000000" title="Black"></button>
+                                <button class="color-btn blue" data-color="#3498db" title="Blue"></button>
+                                <button class="color-btn red" data-color="#e74c3c" title="Red"></button>
+                                <button class="color-btn green" data-color="#2ecc71" title="Green"></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Brush Size -->
+                        <div class="control-group">
+                            <label><i class="fas fa-paint-brush"></i> Brush Size</label>
+                            <div class="brush-controls">
+                                <div class="brush-sizes">
+                                    <button class="size-btn active" data-size="3">Small</button>
+                                    <button class="size-btn" data-size="8">Medium</button>
+                                    <button class="size-btn" data-size="15">Large</button>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" id="brushSlider" min="1" max="30" value="8">
+                                    <span id="brushSizeValue">8px</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button id="clearBtn" class="btn danger">
+                                <i class="fas fa-trash-alt"></i> Clear Canvas
+                            </button>
+                            <button id="queryBtn" class="btn success">
+                                <i class="fas fa-search"></i> Search Similar Images
+                            </button>
+                            <button id="saveSketchBtn" class="btn info">
+                                <i class="fas fa-save"></i> Save to Database
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Display -->
+                    <div id="retrievalResults" class="results-container" style="display: none;">
+                        <div class="results-header">
+                            <h4><i class="fas fa-images"></i> Retrieval Results</h4>
+                            <button class="close-results">&times;</button>
+                        </div>
+                        <div class="results-content">
+                            <div id="resultsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Database Info and Examples -->
+            <div class="right-panel">
+                <!-- Database Info -->
+                <div class="info-card">
+                    <h3><i class="fas fa-info-circle"></i> About This System</h3>
+                    <div class="card-content">
+                        <p>This sketch-based image retrieval system allows you to:</p>
+                        <ul>
+                            <li>Draw sketches of objects</li>
+                            <li>Search for similar images in the database</li>
+                            <li>View retrieval results with similarity scores</li>
+                            <li>Add your sketches to the database</li>
+                        </ul>
+                        
+                        <div class="tech-info">
+                            <h4><i class="fas fa-cogs"></i> Technical Details</h4>
+                            <p><strong>Feature Extraction:</strong> ResNet18 CNN</p>
+                            <p><strong>Similarity Metric:</strong> Cosine Distance</p>
+                            <p><strong>Retrieval Method:</strong> k-Nearest Neighbors</p>
+                            <p><strong>Based on:</strong> SketchyDatabase Project</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Statistics -->
+                <div class="info-card">
+                    <h3><i class="fas fa-chart-pie"></i> Database Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statImages">100</div>
+                                <div class="stat-label">Total Images</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statCategories">12</div>
+                                <div class="stat-label">Categories</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value">Top-5</div>
+                                <div class="stat-label">Retrieval</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statAccuracy">85%</div>
+                                <div class="stat-label">Avg. Accuracy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <p>人机交互期末设计 - Task 3: Sketch-Based Image Retrieval</p>
+                <p>Based on <a href="https://github.com/CDOTAD/SketchyDatabase" target="_blank">SketchyDatabase</a> | Student: MARCELLA | ID: 2023952001</p>
+                <p class="timestamp">System initialized: <span id="initTime"></span></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/sketch_script.js') }}"></script>
+    <script>
+        // Set initialization time
+        document.getElementById('initTime').textContent = new Date().toLocaleString();
+        
+        // Load statistics
+        loadStatistics();
+        
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/sketch_stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('dbCount').textContent = data.stats.total_images;
+                    document.getElementById('categoryCount').textContent = data.stats.categories.length;
+                    document.getElementById('statImages').textContent = data.stats.total_images;
+                    document.getElementById('statCategories').textContent = data.stats.categories.length;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Comparison Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .chart-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .chart-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .combined-chart {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .combined-chart img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .chart-explanation {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .results-table {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .results-table h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .good {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .medium {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .poor {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .conclusions {
+            background: #f0f8ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #3498db;
+        }
+        
+        .conclusions h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .conclusion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .conclusion-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .conclusion-item h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn-purple {
+            background: #9b59b6;
+        }
+        
+        .btn-green {
+            background: #2ecc71;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .conclusion-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px auto;
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Model Comparison Results</h1>
+            <p>CNN vs Fully Connected Network Performance Analysis</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Combined Chart Section -->
+            <div class="chart-section">
+                <h2>📊 Combined Performance Visualization</h2>
+                <div class="combined-chart">
+                    <img src="{{ url_for('static', filename='model_comparison.png') }}" 
+                         alt="Model Comparison Charts">
+                    <div class="chart-explanation">
+                        <p><strong>This chart shows four key comparisons:</strong></p>
+                        <p>1. <strong>Top-Left:</strong> Accuracy comparison between models</p>
+                        <p>2. <strong>Top-Right:</strong> Training time required</p>
+                        <p>3. <strong>Bottom-Left:</strong> Number of parameters (log scale)</p>
+                        <p>4. <strong>Bottom-Right:</strong> Accuracy vs parameters efficiency</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Table - CORRECTED VERSION -->
+            <div class="results-table">
+                <h2>📋 Performance Metrics</h2>
+                {% if results %}
+                <table>
+                    <tr>
+                        <th>Model</th>
+                        <th>Training Time</th>
+                        <th>Accuracy</th>
+                        {% if results[0].layers is defined and results[0].layers %}<th>Layers</th>{% endif %}
+                        {% if results[0].params is defined and results[0].params %}<th>Parameters</th>{% endif %}
+                    </tr>
+                    {% for r in results %}
+                    <tr>
+                        <td><strong>{{ r.model or r.name }}</strong></td>
+                        <td>{{ "%.2f"|format(r.time or r.training_time) }}s</td>
+                        <td class="{% if r.accuracy > 0.9 %}good{% elif r.accuracy > 0.8 %}medium{% else %}poor{% endif %}">
+                            {{ "%.1f"|format(r.accuracy*100) }}%
+                        </td>
+                        {% if r.layers is defined and r.layers %}<td>{{ r.layers }}</td>{% endif %}
+                        {% if r.params is defined and r.params %}<td>{{ "{:,}".format(r.params) }}</td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <div class="no-data">
+                    <p>No comparison data available.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Conclusions - CORRECTED VERSION -->
+            {% if results and results|length >= 2 %}
+            <div class="conclusions">
+                <h2>🎯 Analysis & Conclusions</h2>
+                
+                <div class="conclusion-grid">
+                    <!-- Best Accuracy -->
+                    <div class="conclusion-item">
+                        <h3>🏆 Best Accuracy</h3>
+                        {% set best_acc = results|sort(attribute='accuracy', reverse=true)|first %}
+                        <p><strong>{{ best_acc.model or best_acc.name }}</strong></p>
+                        <p>{{ "%.1f"|format(best_acc.accuracy*100) }}% accuracy</p>
+                    </div>
+                    
+                    <!-- Fastest Training -->
+                    <div class="conclusion-item">
+                        <h3>⚡ Fastest Training</h3>
+                        {% set fastest = results|sort(attribute='time', reverse=false)|first %}
+                        <p><strong>{{ fastest.model or fastest.name }}</strong></p>
+                        <p>{{ "%.2f"|format(fastest.time) }} seconds</p>
+                    </div>
+                    
+                    <!-- Most Efficient -->
+                    <div class="conclusion-item">
+                        <h3>💰 Most Efficient</h3>
+                        {% if results[0].params is defined and results[1].params is defined and results[0].params > 0 and results[1].params > 0 %}
+                            {% set eff_0 = results[0].accuracy / results[0].params %}
+                            {% set eff_1 = results[1].accuracy / results[1].params %}
+                            {% if eff_0 > eff_1 %}
+                            <p><strong>{{ results[0].model or results[0].name }}</strong></p>
+                            <p>Best accuracy per parameter</p>
+                            {% else %}
+                            <p><strong>{{ results[1].model or results[1].name }}</strong></p>
+                            <p>Best accuracy per parameter</p>
+                            {% endif %}
+                        {% else %}
+                            <p><strong>Data not available</strong></p>
+                            <p>Parameter count needed</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Recommendation -->
+                    <div class="conclusion-item">
+                        <h3>✅ Recommendation</h3>
+                        {% set acc_diff = results[1].accuracy - results[0].accuracy %}
+                        {% set time_diff = results[1].time - results[0].time %}
+                        
+                        {% if acc_diff > 0.05 %}
+                            <p><strong>Use {{ results[1].model or results[1].name }}</strong></p>
+                            <p>Superior accuracy (+{{ "%.1f"|format(acc_diff*100) }}%)</p>
+                        {% elif acc_diff < -0.05 %}
+                            <p><strong>Use {{ results[0].model or results[0].name }}</strong></p>
+                            <p>Better accuracy (+{{ "%.1f"|format(-acc_diff*100) }}%)</p>
+                        {% else %}
+                            {% if time_diff > 0 %}
+                                <p><strong>Use {{ results[0].model or results[0].name }}</strong></p>
+                                <p>Similar accuracy, {{ "%.2f"|format(time_diff) }}s faster</p>
+                            {% else %}
+                                <p><strong>Use {{ results[1].model or results[1].name }}</strong></p>
+                                <p>Similar accuracy, {{ "%.2f"|format(-time_diff) }}s faster</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">📝 Key Insights</h3>
+                    <ul style="color: #555; line-height: 1.6; padding-left: 20px;">
+                        <li><strong>CNN优势:</strong> 更高准确率，特征提取能力强，参数共享效率高</li>
+                        <li><strong>FC优势:</strong> 训练速度快，实现简单，适合小数据集</li>
+                        <li><strong>选择建议:</strong> 图像识别任务推荐CNN，简单任务考虑FC</li>
+                        <li><strong>优化方向:</strong> CNN可进一步优化，FC可通过增加层数提升性能</li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Navigation -->
+            <div class="navigation">
+                <a href="/" class="btn">← Back to Drawing</a>
+                <a href="/network_diagrams" class="btn btn-green">📐 View Network Diagrams</a>
+                <a href="/test" class="btn btn-purple">🛠️ Server Status</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

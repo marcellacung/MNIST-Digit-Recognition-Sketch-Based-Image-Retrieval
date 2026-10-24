@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Architecture Diagrams</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .network-section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .network-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .diagram-caption {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .description-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .description-box h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .architecture-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .detail-item h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .comparison-item {
+            text-align: center;
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .back-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📐 Neural Network Architecture</h1>
+            <p>Visualization of Fully Connected vs Convolutional Neural Networks</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Fully Connected Network -->
+            <div class="network-section">
+                <h2>🏗️ Fully Connected Network Architecture</h2>
+                
+                <div class="description-box">
+                    <h3>{{ fc_desc.name }}</h3>
+                    <p>{{ fc_desc.description }}</p>
+                    <p><strong>Total Parameters:</strong> {{ fc_desc.total_params }}</p>
+                </div>
+                
+                <div class="diagram-container">
+                    <img src="{{ url_for('static', filename='network_diagrams/fc_network.png') }}" 
+                         alt="Fully Connected Network Diagram">
+                    <div class="diagram-caption">
+                        Architecture of a 4-layer fully connected neural network
+                    </div>
+                </div>
+                
+                <div class="architecture-details">
+                    <div class="detail-item">
+                        <h4>📊 Architecture</h4>
+                        <ul>
+                            <li>Input Layer: 784 neurons</li>
+                            <li>Hidden Layer 1: 256 neurons</li>
+                            <li>Hidden Layer 2: 128 neurons</li>
+                            <li>Hidden Layer 3: 64 neurons</li>
+                            <li>Output Layer: 10 neurons</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Simple to implement</li>
+                            <li>Universal approximator</li>
+                            <li>Good for small datasets</li>
+                            <li>Easy to interpret</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>⚠️ Disadvantages</h4>
+                        <ul>
+                            <li>High parameter count</li>
+                            <li>Prone to overfitting</li>
+                            <li>No spatial awareness</li>
+                            <li>Poor scalability</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>🎯 Use Cases</h4>
+                        <ul>
+                            <li>Tabular data</li>
+                            <li>Small datasets</li>
+                            <li>Simple classification</li>
+                            <li>Prototyping</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Convolutional Neural Network -->
+            <div class="network-section">
+                <h2>🖼️ Convolutional Neural Network Architecture</h2>
+                
+                <div class="description-box">
+                    <h3>{{ cnn_desc.name }}</h3>
+                    <p>{{ cnn_desc.description }}</p>
+                    <p><strong>Total Parameters:</strong> {{ cnn_desc.total_params }}</p>
+                </div>
+                
+                <div class="diagram-container">
+                    <img src="{{ url_for('static', filename='network_diagrams/cnn_network.png') }}" 
+                         alt="Convolutional Neural Network Diagram">
+                    <div class="diagram-caption">
+                        Architecture of a CNN with convolutional and pooling layers
+                    </div>
+                </div>
+                
+                <div class="architecture-details">
+                    <div class="detail-item">
+                        <h4>📊 Architecture</h4>
+                        <ul>
+                            <li>Input: 28×28×1 image</li>
+                            <li>Conv1: 32 filters, 3×3 kernel</li>
+                            <li>Pool1: 2×2 max pooling</li>
+                            <li>Conv2: 64 filters, 3×3 kernel</li>
+                            <li>Pool2: 2×2 max pooling</li>
+                            <li>Flatten: 3136 neurons</li>
+                            <li>FC1: 128 neurons</li>
+                            <li>Output: 10 neurons</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>✅ Advantages</h4>
+                        <ul>
+                            <li>Parameter efficient</li>
+                            <li>Spatial hierarchy learning</li>
+                            <li>Translation invariance</li>
+                            <li>Excellent for images</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>⚠️ Disadvantages</h4>
+                        <ul>
+                            <li>More complex</li>
+                            <li>Requires more data</li>
+                            <li>Computationally intensive</li>
+                            <li>Hyperparameter sensitive</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>🎯 Use Cases</h4>
+                        <ul>
+                            <li>Image classification</li>
+                            <li>Object detection</li>
+                            <li>Computer vision</li>
+                            <li>Medical imaging</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparison Section -->
+            <div class="network-section">
+                <h2>⚖️ Side-by-Side Comparison</h2>
+                
+                <div class="diagram-container">
+                    <img src="{{ url_for('static', filename='network_diagrams/comparison_diagram.png') }}" 
+                         alt="Network Comparison Diagram">
+                    <div class="diagram-caption">
+                        Visual comparison of FC vs CNN architectures
+                    </div>
+                </div>
+                
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <h3>🔄 Feature Transformation</h3>
+                        <img src="{{ url_for('static', filename='network_diagrams/feature_transformation.png') }}" 
+                             alt="Feature Transformation" style="max-width: 100%;">
+                        <p>How CNN processes image features through layers</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h3>📈 Key Differences</h3>
+                        <div style="text-align: left; padding: 15px;">
+                            <p><strong>FC Network:</strong></p>
+                            <ul>
+                                <li>Dense connections</li>
+                                <li>Global feature learning</li>
+                                <li>High parameter count</li>
+                                <li>Fixed input size</li>
+                            </ul>
+                            
+                            <p><strong>CNN:</strong></p>
+                            <ul>
+                                <li>Sparse connections</li>
+                                <li>Local feature learning</li>
+                                <li>Parameter sharing</li>
+                                <li>Variable input size</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="button-group">
+                <a href="/" class="back-button">← Back to Drawing</a>
+                <a href="/compare" class="back-button" style="background: #9b59b6;">
+                    📊 View Performance Comparison
+                </a>
+                <button onclick="generateDiagrams()" class="back-button" style="background: #2ecc71;">
+                    🔄 Regenerate Diagrams
+                </button>
+            </div>
+
+            <!-- Add this JavaScript at the bottom of the body -->
+            <script>
+            function generateDiagrams() {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                
+                // Show loading state
+                button.innerHTML = '⏳ Generating...';
+                button.disabled = true;
+                
+                fetch('/generate_diagrams')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✅ Diagrams regenerated successfully!');
+                            // Refresh the page to show new diagrams
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        } else {
+                            alert('❌ Error: ' + (data.error || 'Failed to generate diagrams'));
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ Network error. Please check server console.');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    });
+            }
+            </script>
+        </div>
+    </div>
+</body>
+</html>
