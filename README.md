@@ -138,6 +138,7 @@ MNIST-Digit-Recognition-Sketch-Based-Image-Retrieval/
 - Institution: Shantou University
 - Major: Data Science and Big Data Technology 
 - Course: Human-Computer Interaction (HCI)
+- Email: 23marcella@stu.edu.cn
 
 ---
 
